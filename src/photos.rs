@@ -33,7 +33,10 @@ macro_rules! sticker {
     };
 }
 
-pub static STICKERS: &[Sticker] = &[sticker!("poppy_pajamas.png")];
+pub static STICKERS: &[Sticker] = &[
+    sticker!("poppy_harness.png"),
+    sticker!("poppy_pajamas.png"),
+];
 
 pub static PHOTOS: &[Photo] = &[
     photo!("poppy_rachael1.jpg", "Poppy & Rachael"),
