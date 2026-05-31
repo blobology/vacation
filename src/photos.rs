@@ -38,6 +38,11 @@ pub static STICKERS: &[Sticker] = &[
     sticker!("poppy_pajamas.png"),
 ];
 
+/// The sticker used as the map/journey/game mascot.
+pub fn mascot() -> &'static Sticker {
+    &STICKERS[0]
+}
+
 pub static PHOTOS: &[Photo] = &[
     photo!("poppy_rachael1.jpg", "Poppy & Rachael"),
     photo!("poppy_rob1.jpg", "Rob & Poppy"),
