@@ -3,3 +3,6 @@
 **/*.rs.bk
 # Full-res photo originals stay local; only the optimized assets/photos/ are committed.
 /media
+
+# macOS metadata
+.DS_Store
