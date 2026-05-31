@@ -23,6 +23,8 @@ pub struct TripApp {
     play_accum: f32,
     show_photos: bool,
     enlarged: Option<usize>,
+    /// Accumulated horizontal drag on the enlarged photo, for swipe detection.
+    swipe_dx: f32,
     game: BeachGame,
 }
 
@@ -42,6 +44,7 @@ impl TripApp {
             play_accum: 0.0,
             show_photos: false,
             enlarged: None,
+            swipe_dx: 0.0,
             game: BeachGame::default(),
         }
     }
@@ -393,17 +396,32 @@ impl TripApp {
             ui.separator();
 
             let p = &photos[idx];
+            let mut swipe_dx = self.swipe_dx;
             ui.vertical_centered(|ui| {
-                // Tap/click the photo to advance (handy on touch).
+                // Tap to advance; swipe left/right (drag) to flip through photos.
                 let img = egui::Image::from_bytes(p.uri, p.bytes)
                     .max_height(460.0)
-                    .sense(egui::Sense::click());
-                if ui.add(img).on_hover_text("Tap for next").clicked() {
+                    .sense(egui::Sense::click_and_drag());
+                let resp = ui.add(img).on_hover_text("Tap or swipe");
+                if resp.clicked() {
                     idx = (idx + 1) % n;
+                }
+                if resp.dragged() {
+                    swipe_dx += resp.drag_delta().x;
+                }
+                if resp.drag_stopped() {
+                    const SWIPE: f32 = 40.0;
+                    if swipe_dx <= -SWIPE {
+                        idx = (idx + 1) % n; // swipe left → next
+                    } else if swipe_dx >= SWIPE {
+                        idx = (idx + n - 1) % n; // swipe right → prev
+                    }
+                    swipe_dx = 0.0;
                 }
                 ui.add_space(6.0);
                 ui.label(egui::RichText::new(p.caption).heading());
             });
+            self.swipe_dx = swipe_dx;
 
             self.enlarged = if close { None } else { Some(idx) };
             return;
