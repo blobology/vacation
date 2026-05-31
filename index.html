@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>OBX Trip — Rob, Rachael &amp; Poppy</title>
+    <meta name="description" content="Our August 2026 Outer Banks road trip." />
+
+    <!-- Trunk compiles the Rust/WASM bundle and injects the loader here. -->
+    <link data-trunk rel="rust" data-wasm-opt="2" />
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #0b1d2a;
+      }
+      canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #loading {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #cfe8f5;
+        font: 500 18px system-ui, -apple-system, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loading">Loading the trip… 🌊🐕</div>
+    <canvas id="the_canvas_id"></canvas>
+  </body>
+</html>

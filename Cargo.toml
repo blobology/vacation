@@ -1,0 +1,36 @@
+[package]
+name = "vacation"
+version = "0.1.0"
+edition = "2021"
+description = "OBX road trip planner — Rob, Rachael & Poppy"
+
+# Library holds the app; the binary is just the native/web entry point.
+# (Trunk compiles the *binary* target to WASM, so the lib stays a plain rlib.)
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+egui = "0.34"
+eframe = { version = "0.34", default-features = false, features = [
+    "default_fonts", # embedded fonts so we don't depend on system fonts
+    "glow",          # WebGL renderer — broadest browser compatibility (incl. Safari)
+] }
+walkers = "0.53" # slippy-map (OpenStreetMap) widget for egui
+log = "0.4"
+
+# Native-only
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+env_logger = "0.11"
+
+# Web-only
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = ["Window", "Document", "Element", "HtmlCanvasElement"] }
+console_error_panic_hook = "0.1"
+
+[profile.release]
+opt-level = 2 # fast enough, keeps wasm build times reasonable
+
+# Smaller, faster web builds when running `trunk build --release`
+[profile.release.package."*"]
+opt-level = 2
