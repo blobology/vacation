@@ -355,17 +355,57 @@ impl TripApp {
 
     fn photo_gallery(&mut self, ui: &mut egui::Ui) {
         let photos = crate::photos::PHOTOS;
-        if let Some(i) = self.enlarged {
-            if ui.button("←  back to gallery").clicked() {
-                self.enlarged = None;
+        let n = photos.len();
+        if let Some(start) = self.enlarged {
+            let mut idx = start;
+            let mut close = false;
+
+            // Arrow keys flip through photos.
+            let (left, right, esc) = ui.input(|i| {
+                (
+                    i.key_pressed(egui::Key::ArrowLeft),
+                    i.key_pressed(egui::Key::ArrowRight),
+                    i.key_pressed(egui::Key::Escape),
+                )
+            });
+            if left {
+                idx = (idx + n - 1) % n;
             }
+            if right {
+                idx = (idx + 1) % n;
+            }
+            if esc {
+                close = true;
+            }
+
+            ui.horizontal(|ui| {
+                if ui.add_sized([96.0, 32.0], egui::Button::new("←  Gallery")).clicked() {
+                    close = true;
+                }
+                if ui.add_sized([72.0, 32.0], egui::Button::new("◀ Prev")).clicked() {
+                    idx = (idx + n - 1) % n;
+                }
+                if ui.add_sized([72.0, 32.0], egui::Button::new("Next ▶")).clicked() {
+                    idx = (idx + 1) % n;
+                }
+                ui.label(egui::RichText::new(format!("{} / {}", idx + 1, n)).weak());
+            });
             ui.separator();
-            let p = &photos[i];
+
+            let p = &photos[idx];
             ui.vertical_centered(|ui| {
-                ui.add(egui::Image::from_bytes(p.uri, p.bytes).max_height(460.0));
+                // Tap/click the photo to advance (handy on touch).
+                let img = egui::Image::from_bytes(p.uri, p.bytes)
+                    .max_height(460.0)
+                    .sense(egui::Sense::click());
+                if ui.add(img).on_hover_text("Tap for next").clicked() {
+                    idx = (idx + 1) % n;
+                }
                 ui.add_space(6.0);
                 ui.label(egui::RichText::new(p.caption).heading());
             });
+
+            self.enlarged = if close { None } else { Some(idx) };
             return;
         }
         egui::ScrollArea::vertical().show(ui, |ui| {
