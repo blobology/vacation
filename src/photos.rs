@@ -18,6 +18,23 @@ macro_rules! photo {
     };
 }
 
+/// Cut-out Poppy stickers shown as mascots at the top of the itinerary panel.
+pub struct Sticker {
+    pub uri: &'static str,
+    pub bytes: &'static [u8],
+}
+
+macro_rules! sticker {
+    ($file:literal) => {
+        Sticker {
+            uri: concat!("bytes://stickers/", $file),
+            bytes: include_bytes!(concat!("../assets/photos/", $file)),
+        }
+    };
+}
+
+pub static STICKERS: &[Sticker] = &[sticker!("poppy_pajamas.png")];
+
 pub static PHOTOS: &[Photo] = &[
     photo!("poppy_rachael1.jpg", "Poppy & Rachael"),
     photo!("poppy_rob1.jpg", "Rob & Poppy"),

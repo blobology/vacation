@@ -59,6 +59,14 @@ impl TripApp {
             .default_size(340.0)
             .show_inside(ui, |ui| {
                 ui.add_space(8.0);
+                ui.vertical_centered(|ui| {
+                    ui.horizontal(|ui| {
+                        for s in crate::photos::STICKERS {
+                            ui.add(egui::Image::from_bytes(s.uri, s.bytes).max_height(88.0));
+                        }
+                    });
+                });
+                ui.add_space(4.0);
                 ui.heading("🌊🐕 OBX Road Trip");
                 ui.label("Rob, Rachael & Poppy");
                 ui.label("August 10–16, 2026");
