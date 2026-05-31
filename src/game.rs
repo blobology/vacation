@@ -1,14 +1,19 @@
-//! A tiny "catch Poppy's tennis balls" mini-game, shown in an overlay window.
-//! Move Poppy left/right (mouse or touch-drag) to catch falling tennis balls
-//! before the timer runs out.
+//! "Poppy Bird" — a Flappy-Bird-style mini-game shown in an overlay window.
+//! Tap / click / press Space to flap; fly Poppy through the gaps. One point
+//! per gap cleared. Hitting a pipe, the ground, or the ceiling ends the run.
 
 use egui::{Color32, FontId, Pos2, Rect, Sense, Stroke, Vec2};
 
-const GAME_SECONDS: f32 = 30.0;
-const FALL_SPEED: f32 = 0.42; // fraction of height per second
-const SPAWN_EVERY: f32 = 0.72; // seconds between balls
-const CATCH_X: f32 = 0.11; // horizontal catch tolerance (fraction of width)
-const POPPY_Y: f32 = 0.86; // Poppy's vertical band (fraction of height)
+// All gameplay is in a normalized 0..1 play space, tuned by feel.
+const GRAVITY: f32 = 1.5; // downward accel per second^2
+const FLAP_V: f32 = -0.55; // upward velocity set on each flap
+const PIPE_SPEED: f32 = 0.32; // pipes scroll left this fast (per second)
+const GAP: f32 = 0.34; // vertical gap height
+const PIPE_W: f32 = 0.13; // pipe width
+const SPAWN_DX: f32 = 0.62; // horizontal spacing between pipes
+const POPPY_X: f32 = 0.28; // Poppy's fixed horizontal position
+const RADIUS: f32 = 0.06; // Poppy's collision radius
+const GROUND: f32 = 0.10; // sand strip at the bottom
 
 #[derive(PartialEq)]
 enum Phase {
@@ -17,40 +22,39 @@ enum Phase {
     Over,
 }
 
-struct Ball {
-    x: f32, // 0..1 across the play area
-    y: f32, // 0..1 top→bottom
+struct Pipe {
+    x: f32,
+    gap_center: f32,
+    passed: bool,
 }
 
-pub struct BeachGame {
+pub struct PoppyBird {
     pub active: bool,
     phase: Phase,
     score: u32,
     best: u32,
-    time_left: f32,
-    poppy_x: f32,
-    balls: Vec<Ball>,
-    spawn_timer: f32,
+    poppy_y: f32,
+    vy: f32,
+    pipes: Vec<Pipe>,
     rng: u32,
 }
 
-impl Default for BeachGame {
+impl Default for PoppyBird {
     fn default() -> Self {
         Self {
             active: false,
             phase: Phase::Idle,
             score: 0,
             best: 0,
-            time_left: GAME_SECONDS,
-            poppy_x: 0.5,
-            balls: Vec::new(),
-            spawn_timer: 0.0,
+            poppy_y: 0.5,
+            vy: 0.0,
+            pipes: Vec::new(),
             rng: 0x2545_f491,
         }
     }
 }
 
-impl BeachGame {
+impl PoppyBird {
     pub fn toggle(&mut self, seed_time: f64) {
         self.active = !self.active;
         if self.active {
@@ -60,31 +64,46 @@ impl BeachGame {
     }
 
     fn rand(&mut self) -> f32 {
-        // Small LCG — deterministic but fine for ball placement.
         self.rng = self.rng.wrapping_mul(1_664_525).wrapping_add(1_013_904_223);
         (self.rng >> 8) as f32 / 16_777_216.0
+    }
+
+    fn spawn_pipe(&mut self, x: f32) {
+        // Keep the gap clear of the ceiling and the sand.
+        let lo = GAP / 2.0 + 0.04;
+        let hi = 1.0 - GROUND - GAP / 2.0 - 0.04;
+        let gap_center = lo + self.rand() * (hi - lo);
+        self.pipes.push(Pipe {
+            x,
+            gap_center,
+            passed: false,
+        });
     }
 
     fn start(&mut self) {
         self.phase = Phase::Playing;
         self.score = 0;
-        self.time_left = GAME_SECONDS;
-        self.balls.clear();
-        self.spawn_timer = 0.0;
-        self.poppy_x = 0.5;
+        self.poppy_y = 0.42;
+        self.vy = FLAP_V;
+        self.pipes.clear();
+        self.spawn_pipe(1.0);
     }
 
-    /// Draws the game window when active. `poppy` is the sticker to draw.
-    pub fn show(&mut self, ctx: &egui::Context, poppy_uri: &'static str, poppy_bytes: &'static [u8]) {
+    pub fn show(
+        &mut self,
+        ctx: &egui::Context,
+        poppy_uri: &'static str,
+        poppy_bytes: &'static [u8],
+    ) {
         if !self.active {
             return;
         }
         let screen = ctx.content_rect();
-        let w = (screen.width() - 24.0).min(440.0).max(260.0);
-        let h = (screen.height() - 80.0).min(560.0).max(360.0);
+        let w = (screen.width() - 24.0).clamp(260.0, 440.0);
+        let h = (screen.height() - 80.0).clamp(360.0, 560.0);
 
         let mut open = self.active;
-        egui::Window::new("🎾 Beach Fetch")
+        egui::Window::new("🐦 Poppy Bird")
             .collapsible(false)
             .resizable(false)
             .open(&mut open)
@@ -104,33 +123,31 @@ impl BeachGame {
         poppy_uri: &'static str,
         poppy_bytes: &'static [u8],
     ) {
-        let (rect, resp) = ui.allocate_exact_size(size, Sense::click_and_drag());
+        let (rect, resp) = ui.allocate_exact_size(size, Sense::click());
         let painter = ui.painter_at(rect);
 
-        // Sand + sea backdrop.
-        painter.rect_filled(rect, 10.0, Color32::from_rgb(238, 222, 180));
-        let sea = Rect::from_min_max(rect.min, egui::pos2(rect.max.x, rect.min.y + rect.height() * 0.28));
-        painter.rect_filled(sea, 10.0, Color32::from_rgb(94, 178, 205));
+        let to_screen =
+            |x: f32, y: f32| -> Pos2 { egui::pos2(rect.left() + x * rect.width(), rect.top() + y * rect.height()) };
 
-        let to_screen = |x: f32, y: f32| -> Pos2 {
-            egui::pos2(rect.left() + x * rect.width(), rect.top() + y * rect.height())
-        };
+        // Sky + sea + sand.
+        painter.rect_filled(rect, 10.0, Color32::from_rgb(155, 209, 229));
+        let sand_top = 1.0 - GROUND;
+        let sand = Rect::from_min_max(to_screen(0.0, sand_top), rect.max);
+        painter.rect_filled(sand, 0.0, Color32::from_rgb(238, 222, 180));
 
-        // Pointer controls Poppy's x (mouse hover or touch drag).
-        if let Some(p) = ui.input(|i| i.pointer.latest_pos()) {
-            if rect.contains(p) {
-                self.poppy_x = ((p.x - rect.left()) / rect.width()).clamp(0.04, 0.96);
-            }
-        }
+        // Flap on tap/click or Space / Up arrow.
+        let flap = resp.clicked()
+            || ui.input(|i| i.key_pressed(egui::Key::Space) || i.key_pressed(egui::Key::ArrowUp));
 
         match self.phase {
             Phase::Idle | Phase::Over => {
-                let dim = Color32::from_black_alpha(60);
-                painter.rect_filled(rect, 10.0, dim);
+                self.draw_pipes(&painter, &to_screen);
+                self.draw_poppy(ui, to_screen(POPPY_X, self.poppy_y), 0.0, rect.height(), poppy_uri, poppy_bytes);
+                painter.rect_filled(rect, 10.0, Color32::from_black_alpha(70));
                 let msg = if self.phase == Phase::Over {
-                    format!("Time! You caught {} 🎾\nBest: {}\n\nTap to play again", self.score, self.best)
+                    format!("Score: {}   Best: {}\n\nTap to play again", self.score, self.best)
                 } else {
-                    "🎾 Catch Poppy's tennis balls!\nMove Poppy to catch them.\n\nTap to start".to_owned()
+                    "🐦 Poppy Bird\nTap / click / Space to flap.\nFly through the gaps!\n\nTap to start".to_owned()
                 };
                 painter.text(
                     rect.center(),
@@ -139,68 +156,81 @@ impl BeachGame {
                     FontId::proportional(20.0),
                     Color32::WHITE,
                 );
-                self.draw_poppy(ui, to_screen(self.poppy_x, POPPY_Y), poppy_uri, poppy_bytes);
-                if resp.clicked() {
+                if flap {
                     self.start();
                 }
             }
             Phase::Playing => {
                 let dt = ui.input(|i| i.stable_dt).min(0.05);
-                self.time_left -= dt;
-                if self.time_left <= 0.0 {
-                    self.time_left = 0.0;
+
+                if flap {
+                    self.vy = FLAP_V;
+                }
+                self.vy += GRAVITY * dt;
+                self.poppy_y += self.vy * dt;
+
+                // Ceiling: clamp. Ground: game over.
+                if self.poppy_y < 0.0 {
+                    self.poppy_y = 0.0;
+                    self.vy = 0.0;
+                }
+                let mut dead = self.poppy_y + RADIUS >= 1.0 - GROUND;
+
+                // Move pipes, score, and check collisions.
+                for p in &mut self.pipes {
+                    p.x -= PIPE_SPEED * dt;
+                    if !p.passed && p.x + PIPE_W < POPPY_X {
+                        p.passed = true;
+                        self.score += 1;
+                    }
+                    let overlap_x = POPPY_X + RADIUS > p.x && POPPY_X - RADIUS < p.x + PIPE_W;
+                    if overlap_x {
+                        let gap_top = p.gap_center - GAP / 2.0;
+                        let gap_bottom = p.gap_center + GAP / 2.0;
+                        if self.poppy_y - RADIUS < gap_top || self.poppy_y + RADIUS > gap_bottom {
+                            dead = true;
+                        }
+                    }
+                }
+                self.pipes.retain(|p| p.x + PIPE_W > -0.02);
+
+                // Spawn the next pipe once the last one has moved in far enough.
+                if self.pipes.last().map(|p| p.x < 1.0 - SPAWN_DX).unwrap_or(true) {
+                    self.spawn_pipe(1.0);
+                }
+
+                self.draw_pipes(&painter, &to_screen);
+                let tilt = (self.vy * 0.9).clamp(-0.5, 0.9);
+                self.draw_poppy(ui, to_screen(POPPY_X, self.poppy_y), tilt, rect.height(), poppy_uri, poppy_bytes);
+
+                painter.text(
+                    rect.center_top() + Vec2::new(0.0, 12.0),
+                    egui::Align2::CENTER_TOP,
+                    format!("{}", self.score),
+                    FontId::proportional(30.0),
+                    Color32::WHITE,
+                );
+
+                if dead {
                     self.best = self.best.max(self.score);
                     self.phase = Phase::Over;
                 }
-
-                // Spawn.
-                self.spawn_timer -= dt;
-                if self.spawn_timer <= 0.0 {
-                    self.spawn_timer = SPAWN_EVERY;
-                    let x = 0.08 + self.rand() * 0.84;
-                    self.balls.push(Ball { x, y: -0.05 });
-                }
-
-                // Move + collide.
-                let poppy_x = self.poppy_x;
-                let mut caught = 0u32;
-                self.balls.retain_mut(|b| {
-                    b.y += FALL_SPEED * dt;
-                    if b.y >= POPPY_Y && (b.x - poppy_x).abs() < CATCH_X {
-                        caught += 1;
-                        return false; // caught
-                    }
-                    b.y < 1.05 // drop missed balls
-                });
-                self.score += caught;
-
-                // Draw balls.
-                for b in &self.balls {
-                    let c = to_screen(b.x, b.y);
-                    painter.circle_filled(c, 12.0, Color32::from_rgb(200, 222, 0));
-                    painter.circle_stroke(c, 12.0, Stroke::new(1.5, Color32::from_rgb(150, 170, 0)));
-                }
-
-                self.draw_poppy(ui, to_screen(self.poppy_x, POPPY_Y), poppy_uri, poppy_bytes);
-
-                // HUD.
-                painter.text(
-                    rect.left_top() + Vec2::new(10.0, 8.0),
-                    egui::Align2::LEFT_TOP,
-                    format!("🎾 {}", self.score),
-                    FontId::proportional(22.0),
-                    Color32::from_rgb(40, 40, 40),
-                );
-                painter.text(
-                    rect.right_top() + Vec2::new(-10.0, 8.0),
-                    egui::Align2::RIGHT_TOP,
-                    format!("⏱ {:.0}", self.time_left.ceil()),
-                    FontId::proportional(22.0),
-                    Color32::from_rgb(40, 40, 40),
-                );
-
                 ui.ctx().request_repaint();
             }
+        }
+    }
+
+    fn draw_pipes(&self, painter: &egui::Painter, to_screen: &impl Fn(f32, f32) -> Pos2) {
+        let green = Color32::from_rgb(76, 175, 122);
+        let edge = Stroke::new(2.0, Color32::from_rgb(40, 120, 80));
+        for p in &self.pipes {
+            let gap_top = p.gap_center - GAP / 2.0;
+            let gap_bottom = p.gap_center + GAP / 2.0;
+            let top = Rect::from_min_max(to_screen(p.x, 0.0), to_screen(p.x + PIPE_W, gap_top));
+            let bottom =
+                Rect::from_min_max(to_screen(p.x, gap_bottom), to_screen(p.x + PIPE_W, 1.0 - GROUND));
+            painter.rect(top, 3.0, green, edge, egui::StrokeKind::Inside);
+            painter.rect(bottom, 3.0, green, edge, egui::StrokeKind::Inside);
         }
     }
 
@@ -208,11 +238,15 @@ impl BeachGame {
         &self,
         ui: &mut egui::Ui,
         center: Pos2,
+        tilt: f32,
+        rect_h: f32,
         poppy_uri: &'static str,
         poppy_bytes: &'static [u8],
     ) {
-        let size = Vec2::splat(70.0);
-        let rect = Rect::from_center_size(center, size);
-        egui::Image::from_bytes(poppy_uri, poppy_bytes).paint_at(ui, rect);
+        let s = (rect_h * 0.14).clamp(44.0, 80.0);
+        let r = Rect::from_center_size(center, Vec2::splat(s));
+        egui::Image::from_bytes(poppy_uri, poppy_bytes)
+            .rotate(tilt, Vec2::splat(0.5))
+            .paint_at(ui, r);
     }
 }

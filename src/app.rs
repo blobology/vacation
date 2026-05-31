@@ -6,7 +6,7 @@
 use egui::{Align, Align2, Color32, CornerRadius, FontId, Id, Layout, Margin, Pos2, Rect, Stroke};
 use walkers::{sources::OpenStreetMap, HttpTiles, Map, MapMemory, Plugin, Position, Projector};
 
-use crate::game::BeachGame;
+use crate::game::PoppyBird;
 use crate::trip::{driving_route, itinerary, Stop};
 
 /// Below this window width (logical px) we switch to the phone layout.
@@ -25,7 +25,7 @@ pub struct TripApp {
     enlarged: Option<usize>,
     /// Accumulated horizontal drag on the enlarged photo, for swipe detection.
     swipe_dx: f32,
-    game: BeachGame,
+    game: PoppyBird,
 }
 
 impl TripApp {
@@ -45,7 +45,7 @@ impl TripApp {
             show_photos: false,
             enlarged: None,
             swipe_dx: 0.0,
-            game: BeachGame::default(),
+            game: PoppyBird::default(),
         }
     }
 
@@ -159,7 +159,7 @@ impl TripApp {
             if ui.button("📷  Photos").clicked() {
                 self.show_photos = !self.show_photos;
             }
-            if ui.button("🎾  Beach Fetch").clicked() {
+            if ui.button("🐦  Poppy Bird").clicked() {
                 self.game.toggle(time);
             }
         });
@@ -222,7 +222,7 @@ impl TripApp {
                     ui.label(egui::RichText::new("Aug 10–16, 2026").small().weak());
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                    if ui.button("🎾").clicked() {
+                    if ui.button("🐦").clicked() {
                         self.game.toggle(time);
                     }
                     if ui.button("📷").clicked() {
