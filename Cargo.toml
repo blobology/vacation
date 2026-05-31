@@ -16,6 +16,7 @@ eframe = { version = "0.34", default-features = false, features = [
     "glow",          # WebGL renderer — broadest browser compatibility (incl. Safari)
 ] }
 walkers = "0.53" # slippy-map (OpenStreetMap) widget for egui
+egui_extras = { version = "0.34", features = ["image"] } # image loader for the photo gallery
 log = "0.4"
 
 # Native-only

@@ -13,10 +13,16 @@ pub struct TripApp {
     map_memory: MapMemory,
     stops: Vec<Stop>,
     selected: Option<usize>,
+    show_photos: bool,
+    /// Index of the photo shown enlarged in the gallery, if any.
+    enlarged: Option<usize>,
 }
 
 impl TripApp {
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        // Lets `egui::Image` decode the embedded JPEGs.
+        egui_extras::install_image_loaders(&cc.egui_ctx);
+
         let mut map_memory = MapMemory::default();
         // Start zoomed out enough to see VA → the NC coast.
         let _ = map_memory.set_zoom(6.0);
@@ -26,6 +32,8 @@ impl TripApp {
             map_memory,
             stops: itinerary(),
             selected: None,
+            show_photos: false,
+            enlarged: None,
         }
     }
 
@@ -40,6 +48,7 @@ impl eframe::App for TripApp {
         self.itinerary_panel(ui);
         self.map_panel(ui);
         self.zoom_controls(ui);
+        self.photos_window(ui.ctx());
     }
 }
 
@@ -53,6 +62,13 @@ impl TripApp {
                 ui.heading("🌊🐕 OBX Road Trip");
                 ui.label("Rob, Rachael & Poppy");
                 ui.label("August 10–16, 2026");
+                ui.add_space(6.0);
+                if ui
+                    .button(egui::RichText::new("📷  Trip Photos").size(15.0))
+                    .clicked()
+                {
+                    self.show_photos = !self.show_photos;
+                }
                 ui.separator();
 
                 let mut newly_selected = None;
@@ -126,6 +142,50 @@ impl TripApp {
                 .with_plugin(pins);
                 ui.add(map);
             });
+    }
+
+    fn photos_window(&mut self, ctx: &egui::Context) {
+        // Use a local bool so the window's close button and the gallery body
+        // don't both borrow `self` at once.
+        let mut open = self.show_photos;
+        egui::Window::new("📷 Trip Photos")
+            .open(&mut open)
+            .default_size([540.0, 620.0])
+            .show(ctx, |ui| self.photo_gallery(ui));
+        self.show_photos = open;
+    }
+
+    fn photo_gallery(&mut self, ui: &mut egui::Ui) {
+        let photos = crate::photos::PHOTOS;
+
+        if let Some(i) = self.enlarged {
+            if ui.button("←  back to gallery").clicked() {
+                self.enlarged = None;
+            }
+            ui.separator();
+            let p = &photos[i];
+            ui.vertical_centered(|ui| {
+                ui.add(egui::Image::from_bytes(p.uri, p.bytes).max_height(460.0));
+                ui.add_space(6.0);
+                ui.label(egui::RichText::new(p.caption).heading());
+            });
+            return;
+        }
+
+        egui::ScrollArea::vertical().show(ui, |ui| {
+            ui.horizontal_wrapped(|ui| {
+                for (i, p) in photos.iter().enumerate() {
+                    let thumb = egui::Image::from_bytes(p.uri, p.bytes).max_height(120.0);
+                    if ui
+                        .add(egui::Button::image(thumb))
+                        .on_hover_text(p.caption)
+                        .clicked()
+                    {
+                        self.enlarged = Some(i);
+                    }
+                }
+            });
+        });
     }
 
     fn zoom_controls(&mut self, ui: &mut egui::Ui) {
