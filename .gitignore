@@ -3,6 +3,11 @@
 **/*.rs.bk
 # Full-res photo originals stay local; only the optimized assets/photos/ are committed.
 /media
+# Lumber originals + CV debug output stay local; only assets/wood/ is committed.
+/wood
+
+# Downloaded model weights (auto-fetched by tools/count_boards_sam.py)
+*.pt
 
 # macOS metadata
 .DS_Store

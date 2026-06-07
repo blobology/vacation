@@ -56,3 +56,24 @@ pub static PHOTOS: &[Photo] = &[
     photo!("poppy6.jpg", "Poppy 🐾"),
     photo!("poppy7.jpg", "Poppy 🐾"),
 ];
+
+macro_rules! wood {
+    ($file:literal, $caption:literal) => {
+        Photo {
+            uri: concat!("bytes://wood/", $file),
+            bytes: include_bytes!(concat!("../assets/wood/", $file)),
+            caption: $caption,
+        }
+    };
+}
+
+/// End-on photos of stacked lumber, for the board-counting feature.
+pub static WOOD: &[Photo] = &[
+    wood!("wood1.jpg", "Stacked boards (end-on)"),
+    wood!("wood1_counted.jpg", "FastSAM segmentation — 114 boards detected"),
+];
+
+/// Boards counted in the example stack by the offline FastSAM pass
+/// (see tools/count_boards_sam.py). A few edge/bottom boards are missed,
+/// so the true count is a bit higher (~120–140).
+pub const WOOD_BOARD_COUNT: u32 = 114;

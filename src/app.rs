@@ -23,6 +23,8 @@ pub struct TripApp {
     play_accum: f32,
     show_photos: bool,
     enlarged: Option<usize>,
+    show_wood: bool,
+    enlarged_wood: Option<usize>,
     /// Accumulated horizontal drag on the enlarged photo, for swipe detection.
     swipe_dx: f32,
     game: PoppyBird,
@@ -44,6 +46,8 @@ impl TripApp {
             play_accum: 0.0,
             show_photos: false,
             enlarged: None,
+            show_wood: false,
+            enlarged_wood: None,
             swipe_dx: 0.0,
             game: PoppyBird::default(),
         }
@@ -137,6 +141,7 @@ impl eframe::App for TripApp {
         self.zoom_controls(ui);
 
         self.photos_window(&ctx);
+        self.wood_window(&ctx);
         let m = crate::photos::mascot();
         self.game.show(&ctx, m.uri, m.bytes);
     }
@@ -158,6 +163,9 @@ impl TripApp {
         ui.horizontal_wrapped(|ui| {
             if ui.button("📷  Photos").clicked() {
                 self.show_photos = !self.show_photos;
+            }
+            if ui.button("🪵  Wood").clicked() {
+                self.show_wood = !self.show_wood;
             }
             if ui.button("🐦  Poppy Bird").clicked() {
                 self.game.toggle(time);
@@ -224,6 +232,9 @@ impl TripApp {
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     if ui.button("🐦").clicked() {
                         self.game.toggle(time);
+                    }
+                    if ui.button("🪵").clicked() {
+                        self.show_wood = !self.show_wood;
                     }
                     if ui.button("📷").clicked() {
                         self.show_photos = !self.show_photos;
@@ -349,17 +360,56 @@ impl TripApp {
 
     fn photos_window(&mut self, ctx: &egui::Context) {
         let mut open = self.show_photos;
+        let enlarged = &mut self.enlarged;
+        let swipe_dx = &mut self.swipe_dx;
         egui::Window::new("📷 Trip Photos")
             .open(&mut open)
             .default_size([540.0, 620.0])
-            .show(ctx, |ui| self.photo_gallery(ui));
+            .show(ctx, |ui| {
+                photo_gallery(ui, crate::photos::PHOTOS, enlarged, swipe_dx)
+            });
         self.show_photos = open;
     }
 
-    fn photo_gallery(&mut self, ui: &mut egui::Ui) {
-        let photos = crate::photos::PHOTOS;
+    fn wood_window(&mut self, ctx: &egui::Context) {
+        let mut open = self.show_wood;
+        let enlarged = &mut self.enlarged_wood;
+        let swipe_dx = &mut self.swipe_dx;
+        egui::Window::new("🪵 Wood — board counting")
+            .open(&mut open)
+            .default_size([540.0, 620.0])
+            .show(ctx, |ui| {
+                ui.label(egui::RichText::new(format!(
+                    "🪵 {} boards counted end-on with FastSAM segmentation",
+                    crate::photos::WOOD_BOARD_COUNT
+                )).strong());
+                ui.label(
+                    egui::RichText::new(
+                        "Open the second photo to see each detected board. A few \
+                         edge boards are missed, so the true count runs a touch higher.",
+                    )
+                    .small()
+                    .weak(),
+                );
+                ui.separator();
+                photo_gallery(ui, crate::photos::WOOD, enlarged, swipe_dx)
+            });
+        self.show_wood = open;
+    }
+}
+
+/// A reusable photo gallery: a wrapped thumbnail grid, or an enlarged single
+/// photo with prev/next + arrow-key/swipe navigation. `enlarged`/`swipe_dx`
+/// hold the per-gallery view state so multiple galleries stay independent.
+fn photo_gallery(
+    ui: &mut egui::Ui,
+    photos: &[crate::photos::Photo],
+    enlarged: &mut Option<usize>,
+    swipe_dx: &mut f32,
+) {
+    {
         let n = photos.len();
-        if let Some(start) = self.enlarged {
+        if let Some(start) = *enlarged {
             let mut idx = start;
             let mut close = false;
 
@@ -396,7 +446,7 @@ impl TripApp {
             ui.separator();
 
             let p = &photos[idx];
-            let mut swipe_dx = self.swipe_dx;
+            let mut dx = *swipe_dx;
             ui.vertical_centered(|ui| {
                 // Tap to advance; swipe left/right (drag) to flip through photos.
                 let img = egui::Image::from_bytes(p.uri, p.bytes)
@@ -407,23 +457,23 @@ impl TripApp {
                     idx = (idx + 1) % n;
                 }
                 if resp.dragged() {
-                    swipe_dx += resp.drag_delta().x;
+                    dx += resp.drag_delta().x;
                 }
                 if resp.drag_stopped() {
                     const SWIPE: f32 = 40.0;
-                    if swipe_dx <= -SWIPE {
+                    if dx <= -SWIPE {
                         idx = (idx + 1) % n; // swipe left → next
-                    } else if swipe_dx >= SWIPE {
+                    } else if dx >= SWIPE {
                         idx = (idx + n - 1) % n; // swipe right → prev
                     }
-                    swipe_dx = 0.0;
+                    dx = 0.0;
                 }
                 ui.add_space(6.0);
                 ui.label(egui::RichText::new(p.caption).heading());
             });
-            self.swipe_dx = swipe_dx;
+            *swipe_dx = dx;
 
-            self.enlarged = if close { None } else { Some(idx) };
+            *enlarged = if close { None } else { Some(idx) };
             return;
         }
         egui::ScrollArea::vertical().show(ui, |ui| {
@@ -435,7 +485,7 @@ impl TripApp {
                         .on_hover_text(p.caption)
                         .clicked()
                     {
-                        self.enlarged = Some(i);
+                        *enlarged = Some(i);
                     }
                 }
             });
