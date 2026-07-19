@@ -3,13 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-    <title>OBX Trip — Rob, Rachael &amp; Poppy</title>
-    <meta name="description" content="Our August 2026 Outer Banks road trip." />
+    <title>Highlands &amp; Balds — Rob, Rachael &amp; Poppy</title>
+    <meta name="description" content="Our August 2026 Blue Ridge road trip — Grayson Highlands, the New River, and the Roan Highlands." />
 
     <!-- Trunk compiles the Rust/WASM bundle and injects the loader here. -->
     <link data-trunk rel="rust" data-wasm-opt="2" />
     <!-- Custom-domain file for GitHub Pages — copied verbatim into dist/. -->
     <link data-trunk rel="copy-file" href="CNAME" />
+    <!-- Static day-by-day itinerary page, served alongside the app. -->
+    <link data-trunk rel="copy-file" href="itinerary.html" />
 
     <style>
       html,
@@ -37,7 +39,7 @@
     </style>
   </head>
   <body>
-    <div id="loading">Loading the trip… 🌊🐕</div>
+    <div id="loading">Loading the trip… ⛰️🐕</div>
     <canvas id="the_canvas_id"></canvas>
   </body>
 </html>

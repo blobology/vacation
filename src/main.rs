@@ -10,12 +10,12 @@ fn main() -> eframe::Result {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([1100.0, 750.0])
             .with_min_inner_size([480.0, 360.0])
-            .with_title("OBX Trip — Rob, Rachael & Poppy"),
+            .with_title("Highlands & Balds — Rob, Rachael & Poppy"),
         ..Default::default()
     };
 
     eframe::run_native(
-        "OBX Trip",
+        "Highlands & Balds",
         native_options,
         Box::new(|cc| Ok(Box::new(vacation::TripApp::new(cc)))),
     )

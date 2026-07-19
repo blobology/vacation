@@ -1,15 +1,18 @@
-# vacation 🌊🐕
+# vacation ⛰️🐕
 
 A little **egui + walkers (Rust → WebAssembly)** site for sharing our August 2026
-Outer Banks road trip — Rob, Rachael & Poppy. Immediate-mode UI (à la Dear ImGui)
+Blue Ridge road trip — Rob, Rachael & Poppy. Immediate-mode UI (à la Dear ImGui)
 with an interactive OpenStreetMap map, a driving-route line, and a labeled pin for
-each stop. Runs natively *and* in the browser from a single codebase.
+each stop. Runs natively *and* in the browser from a single codebase. A static
+`itinerary.html` (the pretty day-by-day page) is served alongside the app.
 
 ## The trip
 
-Arlington, VA → **Duck, OBX** (4 nights, dog-friendly beach all day) → day trips to
-**Corolla** (wild horses) and **Nags Head** (Jockey's Ridge) → **Duke / Durham**
-(2 nights with friends) → home. Aug 10–16, 2026.
+Arlington, VA → **Damascus** (trail-town night) → backpack the **Grayson
+Highlands / Mount Rogers** high country (wild ponies, one night camped) →
+**West Jefferson, NC** river base (2 nights) with a **New River** canoe day →
+one night camped on **Grassy Ridge Bald** in the Roan Highlands → home.
+Aug 7–13, 2026. (The earlier OBX plan this site once showed was cancelled.)
 
 ## Run it
 

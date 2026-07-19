@@ -8,9 +8,9 @@ use walkers::{lon_lat, Position};
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum StopKind {
     Drive,
-    Beach,
-    Activity,
-    Friends,
+    Camp,
+    Canoe,
+    Stay,
     Home,
 }
 
@@ -18,9 +18,9 @@ impl StopKind {
     pub fn emoji(self) -> &'static str {
         match self {
             StopKind::Drive => "🚗",
-            StopKind::Beach => "🏖️",
-            StopKind::Activity => "🐎",
-            StopKind::Friends => "🎓",
+            StopKind::Camp => "⛺",
+            StopKind::Canoe => "🛶",
+            StopKind::Stay => "🏡",
             StopKind::Home => "🏠",
         }
     }
@@ -28,9 +28,9 @@ impl StopKind {
     pub fn color(self) -> Color32 {
         match self {
             StopKind::Drive => Color32::from_rgb(120, 120, 120),
-            StopKind::Beach => Color32::from_rgb(0, 150, 200),
-            StopKind::Activity => Color32::from_rgb(230, 150, 0),
-            StopKind::Friends => Color32::from_rgb(0, 90, 190),
+            StopKind::Camp => Color32::from_rgb(63, 107, 79),
+            StopKind::Canoe => Color32::from_rgb(70, 120, 165),
+            StopKind::Stay => Color32::from_rgb(184, 134, 15),
             StopKind::Home => Color32::from_rgb(90, 90, 90),
         }
     }
@@ -80,67 +80,85 @@ pub fn itinerary() -> Vec<Stop> {
         stop(
             "Depart Arlington",
             "Arlington, VA",
-            "Mon Aug 10",
-            "Hit the road south (~5.5 hr, ~330 mi). Lunch around Williamsburg/Norfolk, \
-             then check in at Duck and an evening beach walk with Poppy.",
+            "Fri Aug 7",
+            "Roll out around 2pm, ~5¾ hr down I-81 (~360 mi). Dinner in town and an \
+             early night at a pet-friendly Airbnb.",
             StopKind::Drive,
             38.8797,
             -77.1075,
         ),
         stop(
-            "Duck — beach base (4 nights)",
-            "Duck, NC",
-            "Aug 10–13",
-            "Home base. Most dog-friendly OBX town — renters get off-leash beach access \
-             under voice control. Dinners on the boardwalk: NC Coast Grill, AQUA, Fishbones.",
-            StopKind::Beach,
-            36.1668,
-            -75.7507,
+            "Damascus — trail town night",
+            "Damascus, VA",
+            "Fri Aug 7",
+            "The little Appalachian Trail town where everything smells like woodsmoke \
+             and boot leather. Sleep, big breakfast, then a short drive to the trailhead.",
+            StopKind::Stay,
+            36.6337,
+            -81.7876,
         ),
         stop(
-            "Corolla wild horses",
-            "Corolla, NC",
+            "Backpack the Grayson Highlands",
+            "Mount Rogers high country",
+            "Sat Aug 8",
+            "Park at Massie Gap (check-in 1pm), hike ~4 mi up the Rhododendron Trail and \
+             the AT over Wilburn Ridge — wild pony country, Poppy on leash — to camp near \
+             Rhododendron Gap / Thomas Knob. Stove-only this year (fire ban); bear boxes \
+             at camp. Sunset from the rocks ~8:20pm.",
+            StopKind::Camp,
+            36.6570,
+            -81.5360,
+        ),
+        stop(
+            "West Jefferson — river base (2 nights)",
+            "West Jefferson, NC",
+            "Aug 9–10",
+            "Morning ponies, back at the car by noon, then ~1 hr to an Airbnb near the \
+             South Fork of the New River. Hot showers, laundry, a real dinner, and a dog \
+             asleep before dark.",
+            StopKind::Stay,
+            36.4043,
+            -81.4929,
+        ),
+        stop(
+            "Canoe the New River",
+            "South Fork New River",
+            "Mon Aug 10",
+            "Zaloo's Canoes (10 min away) puts all three of us in a boat — dogs \
+             officially welcome. Slow, glassy water; more drifting than paddling. \
+             Afternoon nap back at the house.",
+            StopKind::Canoe,
+            36.3650,
+            -81.4090,
+        ),
+        stop(
+            "Camp on Grassy Ridge Bald",
+            "Roan Highlands",
+            "Tue Aug 11",
+            "~2 hr to Carvers Gap, then just 2.5 mi over Round and Jane Balds to camp at \
+             6,100 ft on the longest grassy bald in the Appalachians — 360° of mountains. \
+             Water carried up, food hung. Sunset ~8:15pm, then more stars than we've seen \
+             all year.",
+            StopKind::Camp,
+            36.0995,
+            -82.0780,
+        ),
+        stop(
+            "Hike out, head north",
+            "Roanoke, VA",
             "Wed Aug 12",
-            "~20 min north. Guided 4×4 wild-mustang beach tour (dogs welcome, leashed) and \
-             quiet 4×4 beach time.",
-            StopKind::Activity,
-            36.3779,
-            -75.8302,
+            "Sunrise on the ridge ~6:35am, break camp, and point the car home — ~6¾ hr \
+             in one go, or split it with a night near Roanoke.",
+            StopKind::Drive,
+            37.2710,
+            -79.9414,
         ),
         stop(
-            "Nags Head & Jockey's Ridge",
-            "Nags Head, NC",
-            "Thu Aug 13",
-            "~30 min south. Jockey's Ridge dunes (leashed dogs, go early for cool sand) and \
-             the Wright Brothers Memorial grounds. Oceanfront dinner at Tortugas' Lie.",
-            StopKind::Activity,
-            35.9646,
-            -75.6308,
-        ),
-        stop(
-            "Drive to Duke (Durham)",
-            "Durham, NC",
-            "Fri Aug 14",
-            "Pack up, drive Duck → Durham (~4 hr, ~215 mi). Arrive afternoon at friends' for \
-             the weekend. Durham is a serious food town.",
-            StopKind::Friends,
-            36.0014,
-            -78.9382,
-        ),
-        stop(
-            "Duke / Durham with friends",
-            "Duke, NC",
-            "Sat Aug 15",
-            "Duke campus & gardens, Durham food and breweries with friends.",
-            StopKind::Friends,
-            36.0014,
-            -78.9382,
-        ),
-        stop(
-            "Drive home to Arlington",
+            "Home to Arlington",
             "Arlington, VA",
-            "Sun Aug 16",
-            "Durham → Arlington (~4.5 hr, ~260 mi). Home.",
+            "Thu Aug 13",
+            "Built-in slack day — either already home doing laundry, or an easy final \
+             3½ hr from Roanoke.",
             StopKind::Home,
             38.8797,
             -77.1075,
@@ -149,12 +167,15 @@ pub fn itinerary() -> Vec<Stop> {
 }
 
 /// The actual driving loop, in order, for the connecting line on the map.
-/// (Corolla / Nags Head are day trips, so they're pins but not on this line.)
+/// (The canoe put-in is a short day trip, so it's a pin but not on this line.)
 pub fn driving_route() -> Vec<Position> {
     vec![
         lon_lat(-77.1075, 38.8797), // Arlington
-        lon_lat(-75.7507, 36.1668), // Duck
-        lon_lat(-78.9382, 36.0014), // Durham
+        lon_lat(-81.7876, 36.6337), // Damascus
+        lon_lat(-81.5360, 36.6570), // Mount Rogers high country
+        lon_lat(-81.4929, 36.4043), // West Jefferson
+        lon_lat(-82.0780, 36.0995), // Grassy Ridge Bald
+        lon_lat(-79.9414, 37.2710), // Roanoke
         lon_lat(-77.1075, 38.8797), // back to Arlington
     ]
 }

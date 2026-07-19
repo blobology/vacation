@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Highlands &amp; Balds · Aug 7–13, 2026</title>
+<meta name="description" content="Day-by-day itinerary for Rob, Rachael & Poppy's Blue Ridge road trip." />
+<style>
+  :root {
+    --paper: #f4f6f0;
+    --ink: #22302a;
+    --ink-soft: #55645c;
+    --moss: #3f6b4f;
+    --gold: #b8860f;
+    --ridge: #5b7a93;
+    --line: #d8ddd2;
+    --card: #fbfcf8;
+    --serif: "Palatino Linotype", Palatino, "Book Antiqua", "URW Palladio L", Georgia, serif;
+    --sans: Seravek, "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #161d19;
+      --ink: #e4e8e1;
+      --ink-soft: #9aa89f;
+      --moss: #7fb391;
+      --gold: #d4a437;
+      --ridge: #8fa9bd;
+      --line: #2c3830;
+      --card: #1c2520;
+    }
+  }
+  html { background: var(--paper); }
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    line-height: 1.6;
+    margin: 0;
+    padding: 3rem 1.25rem 5rem;
+  }
+  .page { max-width: 44rem; margin: 0 auto; }
+
+  .backlink {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--ridge);
+    display: inline-block;
+    margin-bottom: 1.75rem;
+  }
+  .backlink:hover { text-decoration: underline; }
+
+  header { margin-bottom: 2.5rem; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--moss);
+    margin: 0 0 0.75rem;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: clamp(2rem, 6vw, 3rem);
+    line-height: 1.08;
+    margin: 0 0 0.5rem;
+    text-wrap: balance;
+    font-weight: 600;
+  }
+  .subtitle { color: var(--ink-soft); margin: 0; max-width: 38rem; }
+
+  .stats {
+    display: flex; flex-wrap: wrap; gap: 0.5rem 2.25rem;
+    margin: 1.75rem 0 0; padding: 1rem 0 0;
+    border-top: 1px solid var(--line);
+  }
+  .stat { display: flex; flex-direction: column; gap: 0.1rem; }
+  .stat b { font-family: var(--mono); font-size: 1.05rem; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .stat span { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 3rem 0 1rem;
+    text-wrap: balance;
+  }
+
+  /* route timeline */
+  .route { list-style: none; margin: 0; padding: 0; }
+  .day {
+    position: relative;
+    padding: 0 0 2.25rem 2.1rem;
+    border-left: 2px solid var(--line);
+    margin-left: 0.55rem;
+  }
+  .day:last-child { border-left-color: transparent; padding-bottom: 0; }
+  .day::before {
+    content: "";
+    position: absolute; left: -0.47rem; top: 0.35rem;
+    width: 0.75rem; height: 0.75rem; border-radius: 50%;
+    background: var(--paper);
+    border: 2.5px solid var(--moss);
+  }
+  .day.camp::before { background: var(--moss); }
+  .day.star::before { border-color: var(--gold); background: var(--gold); }
+  .when {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: baseline;
+  }
+  .tag {
+    color: var(--moss);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 0.05rem 0.4rem;
+    letter-spacing: 0.08em;
+  }
+  .day.star .tag { color: var(--gold); }
+  .day h3 {
+    font-family: var(--serif);
+    font-size: 1.22rem;
+    font-weight: 600;
+    margin: 0.3rem 0 0.5rem;
+    text-wrap: balance;
+  }
+  .day p { margin: 0 0 0.6rem; max-width: 40rem; }
+  .day p:last-child { margin-bottom: 0; }
+  .fine {
+    font-size: 0.88rem; color: var(--ink-soft);
+    border-left: 2px solid var(--gold);
+    padding-left: 0.75rem;
+  }
+  .num { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 0.92em; }
+
+  /* cards + lists */
+  .cardgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1rem 1.15rem;
+  }
+  .card h4 {
+    margin: 0 0 0.5rem;
+    font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--moss); font-weight: 600;
+  }
+  .card ul { margin: 0; padding-left: 1.1rem; }
+  .card li { margin-bottom: 0.35rem; }
+  .card li:last-child { margin-bottom: 0; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+  .tablewrap { overflow-x: auto; }
+  th {
+    text-align: left; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-soft); font-weight: 600;
+    padding: 0.4rem 1rem 0.4rem 0; border-bottom: 1px solid var(--line);
+  }
+  td { padding: 0.55rem 1rem 0.55rem 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.num { white-space: nowrap; }
+  a { color: var(--ridge); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  footer {
+    margin-top: 3.5rem; padding-top: 1rem; border-top: 1px solid var(--line);
+    font-size: 0.85rem; color: var(--ink-soft);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .day::before { transition: transform 0.15s ease; }
+    .day:hover::before { transform: scale(1.25); }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <a class="backlink" href="./">← Trip map &amp; Poppy Bird</a>
+  <header>
+    <p class="eyebrow">Rob · Rachael · Poppy 🐾</p>
+    <h1>Highlands &amp; Balds</h1>
+    <p class="subtitle">Six days across the highest meadows in the Blue Ridge — wild ponies at Grayson Highlands, a lazy canoe down the New River, and a night camped on top of the Roan.</p>
+    <div class="stats">
+      <div class="stat"><b>Aug 7–13</b><span>2026</span></div>
+      <div class="stat"><b>~730 mi</b><span>driving</span></div>
+      <div class="stat"><b>~13 mi</b><span>on foot, packs on</span></div>
+      <div class="stat"><b>2</b><span>nights under stars</span></div>
+      <div class="stat"><b>∞</b><span>ponies (approx.)</span></div>
+    </div>
+  </header>
+
+  <ol class="route">
+    <li class="day">
+      <p class="when">Fri Aug 7 <span class="tag">drive · airbnb</span></p>
+      <h3>Arlington → Abingdon / Damascus, VA</h3>
+      <p>Roll out around 2pm, <span class="num">~5¾ hr</span> down I-81. Dinner in town, early night. Damascus is the little Appalachian Trail town where everything smells like woodsmoke and boot leather.</p>
+    </li>
+    <li class="day camp">
+      <p class="when">Sat Aug 8 <span class="tag">backpack · camp</span></p>
+      <h3>Grayson Highlands → Mount Rogers high country</h3>
+      <p>Short drive to Massie Gap (parking check-in <span class="num">1pm</span>). Hike <span class="num">~4 mi</span> up the Rhododendron Trail and along the AT over Wilburn Ridge — this is pony country, so Poppy stays on leash and pretends to be calm. Camp near Rhododendron Gap / Thomas Knob, dinner on the stove, sunset from the rocks around <span class="num">8:20pm</span>.</p>
+      <p class="fine">Campfires are banned in the high country this year — stove only. Bear boxes at camp for food, trash, toothpaste, and Poppy's kibble.</p>
+    </li>
+    <li class="day">
+      <p class="when">Sun Aug 9 <span class="tag">hike out · airbnb</span></p>
+      <h3>Morning ponies, then down to West Jefferson, NC</h3>
+      <p>Coffee at sunrise, ponies in the morning light, and back at the car by noon (parking checkout). Drive <span class="num">~1 hr</span> to our riverside Airbnb near West Jefferson for two nights. Hot showers, laundry, a real dinner, and a dog asleep before dark.</p>
+    </li>
+    <li class="day">
+      <p class="when">Mon Aug 10 <span class="tag">canoe · airbnb</span></p>
+      <h3>Canoe the South Fork of the New River</h3>
+      <p>Zaloo's Canoes (<span class="num">10 min</span> away) puts all three of us in a boat — dogs officially welcome. The New here is slow and glassy, more drifting than paddling. Afternoon nap, maybe an easy stroll on the Blue Ridge Parkway carriage trails. Same beds as last night.</p>
+    </li>
+    <li class="day star">
+      <p class="when">Tue Aug 11 <span class="tag">backpack · camp</span></p>
+      <h3>Roan Highlands — camp on Grassy Ridge Bald</h3>
+      <p>Drive <span class="num">~2 hr</span> to Carvers Gap on the TN/NC line. Just <span class="num">2.5 mi</span> of trail, but it walks the spine of the longest grassy bald in the Appalachians — Round Bald, Jane Bald, then camp at <span class="num">6,100 ft</span> on Grassy Ridge with 360° of mountains. Sunset around <span class="num">8:15pm</span>, and if the sky cooperates, more stars than either of us has seen all year.</p>
+      <p class="fine">Water is scarce on the ridge — we carry it up (~3L each, plus Poppy's). No bear boxes here; food gets hung or canistered.</p>
+    </li>
+    <li class="day">
+      <p class="when">Wed Aug 12 <span class="tag">hike out · drive</span></p>
+      <h3>Sunrise on the ridge, then home</h3>
+      <p>Sunrise at <span class="num">~6:35am</span> is the show — then break camp, hike out, and point the car north. It's <span class="num">~6¾ hr</span> home; if we'd rather not do it in one go, we stop for a night near Roanoke and finish Thursday.</p>
+    </li>
+    <li class="day">
+      <p class="when">Thu Aug 13 <span class="tag">buffer</span></p>
+      <h3>Home</h3>
+      <p>Built-in slack day — either already home and doing laundry, or an easy final <span class="num">3½ hr</span> from Roanoke.</p>
+    </li>
+  </ol>
+
+  <h2>Bookings</h2>
+  <div class="tablewrap">
+    <table>
+      <tr><th>What</th><th>When</th><th>Notes</th></tr>
+      <tr><td>Grayson Highlands backpacker parking</td><td class="num">Sat 8/8</td><td>Reserved lot at Massie Gap · check-in 1pm, out by noon Sunday</td></tr>
+      <tr><td>Airbnb — Abingdon/Damascus, VA</td><td class="num">Fri 8/7</td><td>1 night · pet-friendly</td></tr>
+      <tr><td>Airbnb — West Jefferson, NC</td><td class="num">Sun 8/9 – Mon 8/10</td><td>2 nights · pet-friendly, riverside if we can get it</td></tr>
+      <tr><td><a href="https://zaloos.com/">Zaloo's Canoes</a>, Jefferson NC</td><td class="num">Mon 8/10 am</td><td>Canoe + shuttle · dogs welcome · free changes up to 24 hrs</td></tr>
+      <tr><td>Roan Highlands / Carvers Gap</td><td class="num">Tue 8/11</td><td>Nothing to book — free parking, no permit</td></tr>
+    </table>
+  </div>
+
+  <h2>Packing notes</h2>
+  <div class="cardgrid">
+    <div class="card">
+      <h4>Mountain weather</h4>
+      <ul>
+        <li>Days in the 70s, nights in the 50s at elevation — real sleeping bags, warm layer each</li>
+        <li>Afternoon thunderstorms are routine; the balds are totally exposed, so we summit mornings and evenings</li>
+        <li>Rain shells even if the forecast looks clean</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Poppy's kit</h4>
+      <ul>
+        <li>6-ft leash required everywhere (and the ponies will test it)</li>
+        <li>Her food counts as bear food — stored with ours, never in the tent</li>
+        <li>Sleeping pad or blanket for cold nights, water bowl for the ridge</li>
+        <li>Towel for the canoe day — she <em>will</em> go in the river</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Camp rules this year</h4>
+      <ul>
+        <li>No campfires in either high-country area — stove with an on/off valve only</li>
+        <li>All smellables (food, trash, toiletries) in bear boxes at Grayson, hung or canistered on the Roan</li>
+        <li>Zip the packs — Grayson's ponies chew salty straps for sport</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    Highlands &amp; Balds · Rob, Rachael &amp; Poppy · August 2026 — trailheads: Massie Gap (Grayson Highlands SP, VA) and Carvers Gap (TN-143 / NC-261).
+  </footer>
+</div>
+</body>
+</html>

@@ -1,7 +1,7 @@
 //! The egui app: a responsive itinerary + an OpenStreetMap map (via `walkers`)
 //! with a driving route, labeled pins, and an animated "Poppy journey" that
-//! slides a sticker between stops day by day. Plus a photo gallery and a little
-//! beach mini-game.
+//! slides a sticker between stops day by day. Plus a photo gallery, a little
+//! mini-game, and a link to the pretty static itinerary page.
 
 use egui::{Align, Align2, Color32, CornerRadius, FontId, Id, Layout, Margin, Pos2, Rect, Stroke};
 use walkers::{sources::OpenStreetMap, HttpTiles, Map, MapMemory, Plugin, Position, Projector};
@@ -54,7 +54,7 @@ impl TripApp {
     }
 
     fn home_position() -> Position {
-        walkers::lon_lat(-77.0, 37.0)
+        walkers::lon_lat(-79.8, 37.4)
     }
 
     fn goto_day(&mut self, day: usize) {
@@ -161,6 +161,9 @@ impl TripApp {
     fn action_buttons(&mut self, ui: &mut egui::Ui) {
         let time = ui.input(|i| i.time);
         ui.horizontal_wrapped(|ui| {
+            if ui.button("🥾  Itinerary").clicked() {
+                ui.ctx().open_url(egui::OpenUrl::new_tab("itinerary.html"));
+            }
             if ui.button("📷  Photos").clicked() {
                 self.show_photos = !self.show_photos;
             }
@@ -181,9 +184,9 @@ impl TripApp {
                 ui.add_space(8.0);
                 ui.vertical_centered(|ui| self.stickers_row(ui, 88.0));
                 ui.add_space(4.0);
-                ui.heading("🌊🐕 OBX Road Trip");
+                ui.heading("⛰️🐕 Highlands & Balds");
                 ui.label("Rob, Rachael & Poppy");
-                ui.label("August 10–16, 2026");
+                ui.label("August 7–13, 2026");
                 ui.add_space(6.0);
                 self.action_buttons(ui);
                 ui.separator();
@@ -226,8 +229,8 @@ impl TripApp {
                 let m = crate::photos::mascot();
                 ui.add(egui::Image::from_bytes(m.uri, m.bytes).max_height(40.0));
                 ui.vertical(|ui| {
-                    ui.label(egui::RichText::new("🌊🐕 OBX Road Trip").strong());
-                    ui.label(egui::RichText::new("Aug 10–16, 2026").small().weak());
+                    ui.label(egui::RichText::new("⛰️🐕 Highlands & Balds").strong());
+                    ui.label(egui::RichText::new("Aug 7–13, 2026").small().weak());
                 });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     if ui.button("🐦").clicked() {
@@ -238,6 +241,9 @@ impl TripApp {
                     }
                     if ui.button("📷").clicked() {
                         self.show_photos = !self.show_photos;
+                    }
+                    if ui.button("🥾").clicked() {
+                        ui.ctx().open_url(egui::OpenUrl::new_tab("itinerary.html"));
                     }
                 });
             });
