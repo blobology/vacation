@@ -113,23 +113,23 @@ pub fn itinerary() -> Vec<Stop> {
             "West Jefferson — river base (2 nights)",
             "West Jefferson, NC",
             "Aug 9–10",
-            "Morning ponies, back at the car by noon, then ~1 hr to an Airbnb near the \
-             South Fork of the New River. Hot showers, laundry, a real dinner, and a dog \
-             asleep before dark.",
+            "Morning ponies, back at the car by noon, then ~1 hr to our cottage a short \
+             walk from downtown — hot tub and fire pit included. Hot showers, laundry, a \
+             real dinner, and a dog asleep before dark.",
             StopKind::Stay,
             36.4043,
             -81.4929,
         ),
         stop(
             "Canoe the New River",
-            "South Fork New River",
+            "Todd, NC",
             "Mon Aug 10",
-            "Zaloo's Canoes (10 min away) puts all three of us in a boat — dogs \
-             officially welcome. Slow, glassy water; more drifting than paddling. \
-             Afternoon nap back at the house.",
+            "RiverGirl Fishing Co. in Todd (~15 min away) puts all three of us in a \
+             canoe — dogs officially welcome. Slow, glassy Class I water; more drifting \
+             than paddling. Afternoon hot tub back at the house.",
             StopKind::Canoe,
-            36.3650,
-            -81.4090,
+            36.2940,
+            -81.6030,
         ),
         stop(
             "Camp on Grassy Ridge Bald",
