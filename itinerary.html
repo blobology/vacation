@@ -176,6 +176,36 @@
     .day::before { transition: transform 0.15s ease; }
     .day:hover::before { transform: scale(1.25); }
   }
+
+  /* --- inline notes --- */
+  .notechip {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--gold); background: none; border: 1px dashed var(--gold); border-radius: 2px;
+    padding: 0.05rem 0.45rem; cursor: pointer;
+  }
+  .notechip:hover { background: var(--card); }
+  .notechip:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  @media (hover: hover) {
+    .day .notechip, .tablewrap tr .notechip { opacity: 0; transition: opacity 0.12s ease; }
+    .day:hover .notechip, .day:focus-within .notechip,
+    .tablewrap tr:hover .notechip, .tablewrap tr:focus-within .notechip { opacity: 1; }
+  }
+  .notecard {
+    border-left: 2px solid var(--gold); background: var(--card);
+    padding: 0.55rem 0.8rem; margin-top: 0.5rem; font-size: 0.92rem;
+  }
+  .notewho {
+    font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 0.15rem;
+  }
+  .notetext { white-space: pre-wrap; }
+  .notebox {
+    width: 100%; box-sizing: border-box; min-height: 4rem; margin-top: 0.5rem;
+    font: inherit; color: var(--ink); background: var(--paper);
+    border: 1px solid var(--line); border-radius: 4px; padding: 0.5rem;
+  }
+  .noteactions { display: flex; gap: 0.5rem; margin-top: 0.35rem; }
+  .notetools { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-top: 0.75rem; }
 </style>
 </head>
 <body>
@@ -221,7 +251,7 @@
       <p class="when">Tue Aug 11 <span class="tag">swim · backpack · camp</span></p>
       <h3>Elk River Falls, then camp on Grassy Ridge Bald</h3>
       <p>On the way to the Roan: <strong>Elk River Falls</strong>, <span class="num">~10 min</span> off the route near Elk Park — a half-mile walk to a 50-ft waterfall pouring into a big emerald pool. Swim from the bank (no jumping — people get hurt there), lunch on the rocks, Poppy leashed back from the lip. Then on to Carvers Gap and just <span class="num">2.5 mi</span> of trail over Round and Jane Balds to camp at <span class="num">6,100 ft</span> on Grassy Ridge — 360° of mountains, sunset around <span class="num">8:15pm</span>, and more stars than either of us has seen all year.</p>
-      <p class="fine">Water is scarce on the ridge — we carry it up (~3L each, plus Poppy's). No bear boxes here; food gets hung or canistered.</p>
+      <p class="fine">Camp plan: past the summit outcrops the trail drops <span class="num">~0.4 mi</span> southeast into a small saddle — established sites in the clearing and the rhododendron pockets, sheltered from the west wind, with the outcrops a two-minute walk back up for sunset. Two trickle springs nearby (one ~100 yd down a worn side trail on the NE side, one just below the saddle) — filter them, and still carry <span class="num">~2L</span> each up plus Poppy's. Established bare-dirt sites only — the ridge grass hides rare plants (Gray's lily grows here). No bear boxes; food gets hung or canistered. Big wind → tuck fully into the rhododendron; storms → Stan Murray Shelter, <span class="num">~1.4 mi</span> up the AT, is the fallback camp.</p>
     </li>
     <li class="day">
       <p class="when">Wed Aug 12 <span class="tag">hike out · swim · drive</span></p>
@@ -286,7 +316,132 @@
 
   <footer>
     Highlands &amp; Balds · Rob, Rachael &amp; Poppy · August 2026 — trailheads: Massie Gap (Grayson Highlands SP, VA) and Carvers Gap (TN-143 / NC-261).
+    <span id="notefooter"></span>
   </footer>
 </div>
+
+<script>
+// Inline notes: hover (or tap, on touch screens) any day or booking row for a
+// "+ note" chip; notes persist in this browser's localStorage. "Share notes
+// link" packs them into a URL — opening it on another device imports any note
+// whose line is still empty there (existing notes are never overwritten).
+(function () {
+  var KEY = "hb-notes-v1";
+  var notes = {};
+  try { notes = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { notes = {}; }
+  function save() { localStorage.setItem(KEY, JSON.stringify(notes)); }
+
+  var m = location.hash.match(/[#&]n=([^&]+)/);
+  if (m) {
+    try {
+      var imp = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));
+      Object.keys(imp).forEach(function (k) {
+        if (typeof imp[k] === "string" && imp[k] && !notes[k]) notes[k] = imp[k];
+      });
+      save();
+      history.replaceState(null, "", location.pathname + location.search);
+    } catch (e) {}
+  }
+
+  var chips = {}, slots = {}, editing = {};
+
+  function mkbtn(label, onclick) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "notechip";
+    b.textContent = label;
+    b.addEventListener("click", onclick);
+    return b;
+  }
+
+  function render(id) {
+    var slot = slots[id];
+    slot.textContent = "";
+    if (editing[id]) {
+      var box = document.createElement("textarea");
+      box.className = "notebox";
+      box.value = notes[id] || "";
+      box.placeholder = "Leave a note…";
+      var actions = document.createElement("div");
+      actions.className = "noteactions";
+      actions.appendChild(mkbtn("Save", function () {
+        var v = box.value.trim();
+        if (v) notes[id] = v; else delete notes[id];
+        editing[id] = false;
+        save();
+        render(id);
+      }));
+      actions.appendChild(mkbtn("Cancel", function () {
+        editing[id] = false;
+        render(id);
+      }));
+      slot.appendChild(box);
+      slot.appendChild(actions);
+      box.focus();
+    } else if (notes[id]) {
+      var card = document.createElement("div");
+      card.className = "notecard";
+      var who = document.createElement("div");
+      who.className = "notewho";
+      who.textContent = "note";
+      var txt = document.createElement("div");
+      txt.className = "notetext";
+      txt.textContent = notes[id];
+      card.appendChild(who);
+      card.appendChild(txt);
+      slot.appendChild(card);
+    }
+    chips[id].textContent = notes[id] ? "✎ edit note" : "＋ note";
+  }
+
+  function attach(id, chipParent, slotParent) {
+    var chip = mkbtn("", function () {
+      editing[id] = true;
+      render(id);
+    });
+    chip.setAttribute("aria-label", "Add or edit a note on this line");
+    chips[id] = chip;
+    var slot = document.createElement("div");
+    slots[id] = slot;
+    chipParent.appendChild(chip);
+    slotParent.appendChild(slot);
+    render(id);
+  }
+
+  document.querySelectorAll(".route .day").forEach(function (day, i) {
+    attach("day-" + i, day.querySelector(".when") || day, day);
+  });
+  document.querySelectorAll(".tablewrap tr").forEach(function (tr, i) {
+    var last = tr.querySelector("td:last-child");
+    if (last) attach("bk-" + i, last, last);
+  });
+
+  var tools = document.createElement("span");
+  tools.className = "notetools";
+  tools.appendChild(mkbtn("Share notes link", function () {
+    var enc = btoa(unescape(encodeURIComponent(JSON.stringify(notes))));
+    var url = location.origin + location.pathname + "#n=" + encodeURIComponent(enc);
+    function done(ok) {
+      hint.textContent = ok ? "Link copied — text it to share your notes." : "";
+      if (!ok) prompt("Copy this link:", url);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function () { done(true); }, function () { done(false); });
+    } else { done(false); }
+  }));
+  tools.appendChild(mkbtn("Clear my notes", function () {
+    if (!Object.keys(notes).length) return;
+    if (confirm("Delete all notes saved on this device?")) {
+      notes = {};
+      save();
+      Object.keys(slots).forEach(render);
+    }
+  }));
+  var hint = document.createElement("span");
+  hint.textContent = "Notes save on this device.";
+  tools.appendChild(hint);
+  document.getElementById("notefooter").appendChild(tools);
+})();
+</script>
 </body>
 </html>
