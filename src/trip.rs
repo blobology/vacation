@@ -10,6 +10,7 @@ pub enum StopKind {
     Drive,
     Camp,
     Canoe,
+    Swim,
     Stay,
     Home,
 }
@@ -20,6 +21,7 @@ impl StopKind {
             StopKind::Drive => "🚗",
             StopKind::Camp => "⛺",
             StopKind::Canoe => "🛶",
+            StopKind::Swim => "💦",
             StopKind::Stay => "🏡",
             StopKind::Home => "🏠",
         }
@@ -30,6 +32,7 @@ impl StopKind {
             StopKind::Drive => Color32::from_rgb(120, 120, 120),
             StopKind::Camp => Color32::from_rgb(63, 107, 79),
             StopKind::Canoe => Color32::from_rgb(70, 120, 165),
+            StopKind::Swim => Color32::from_rgb(40, 145, 180),
             StopKind::Stay => Color32::from_rgb(184, 134, 15),
             StopKind::Home => Color32::from_rgb(90, 90, 90),
         }
@@ -101,7 +104,8 @@ pub fn itinerary() -> Vec<Stop> {
             "Backpack the Grayson Highlands",
             "Mount Rogers high country",
             "Sat Aug 8",
-            "Park at Massie Gap (check-in 1pm), hike ~4 mi up the Rhododendron Trail and \
+            "Maybe a morning swim at Backbone Rock (15 min south of Damascus). Then park \
+             at Massie Gap (check-in 1pm), hike ~4 mi up the Rhododendron Trail and \
              the AT over Wilburn Ridge — wild pony country, Poppy on leash — to camp near \
              Rhododendron Gap / Thomas Knob. Stove-only this year (fire ban); bear boxes \
              at camp. Sunset from the rocks ~8:20pm.",
@@ -114,8 +118,9 @@ pub fn itinerary() -> Vec<Stop> {
             "West Jefferson, NC",
             "Aug 9–10",
             "Morning ponies, back at the car by noon, then ~1 hr to our cottage a short \
-             walk from downtown — hot tub and fire pit included. Hot showers, laundry, a \
-             real dinner, and a dog asleep before dark.",
+             walk from downtown — hot tub and fire pit included. Hot showers, laundry, \
+             then an evening stroll downtown or the short Mount Jefferson summit trail \
+             for a sunset overlook.",
             StopKind::Stay,
             36.4043,
             -81.4929,
@@ -126,10 +131,22 @@ pub fn itinerary() -> Vec<Stop> {
             "Mon Aug 10",
             "RiverGirl Fishing Co. in Todd (~15 min away) puts all three of us in a \
              canoe — dogs officially welcome. Slow, glassy Class I water; more drifting \
-             than paddling. Afternoon hot tub back at the house.",
+             than paddling. Afternoon: Rough Ridge or the Bass Lake carriage trails on \
+             the Parkway, then the hot tub back at the house.",
             StopKind::Canoe,
             36.2940,
             -81.6030,
+        ),
+        stop(
+            "Swim at Elk River Falls",
+            "Elk River Falls",
+            "Tue Aug 11",
+            "On the way to the Roan, ~10 min off the route: a half-mile walk to a 50-ft \
+             waterfall pouring into a big emerald pool. Swim from the bank (no jumping!), \
+             lunch on the rocks, Poppy leashed back from the lip.",
+            StopKind::Swim,
+            36.1810,
+            -81.9700,
         ),
         stop(
             "Camp on Grassy Ridge Bald",
@@ -148,7 +165,9 @@ pub fn itinerary() -> Vec<Stop> {
             "Roanoke, VA",
             "Wed Aug 12",
             "Sunrise on the ridge ~6:35am, break camp, and point the car home — ~6¾ hr \
-             in one go, or split it with a night near Roanoke.",
+             in one go, or the nicer version: Cascades Falls in Pembroke (4-mi creekside \
+             walk to a 66-ft falls and swimming hole), then a celebration dinner and a \
+             night near Roanoke.",
             StopKind::Drive,
             37.2710,
             -79.9414,
@@ -174,6 +193,7 @@ pub fn driving_route() -> Vec<Position> {
         lon_lat(-81.7876, 36.6337), // Damascus
         lon_lat(-81.5360, 36.6570), // Mount Rogers high country
         lon_lat(-81.4929, 36.4043), // West Jefferson
+        lon_lat(-81.9700, 36.1810), // Elk River Falls
         lon_lat(-82.0780, 36.0995), // Grassy Ridge Bald
         lon_lat(-79.9414, 37.2710), // Roanoke
         lon_lat(-77.1075, 38.8797), // back to Arlington
