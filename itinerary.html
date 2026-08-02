@@ -321,29 +321,91 @@
 </div>
 
 <script>
-// Inline notes: hover (or tap, on touch screens) any day or booking row for a
-// "+ note" chip; notes persist in this browser's localStorage. "Share notes
-// link" packs them into a URL — opening it on another device imports any note
-// whose line is still empty there (existing notes are never overwritten).
+// Shared trip notes: one document in a tiny JSON store (jsonblob) is fetched,
+// merged per-note (newest timestamp wins, empty text = deleted), and pushed on
+// save — so everyone looking at the page sees the same notes. localStorage
+// keeps an offline copy: edits made without signal sync when back online.
+// A scheduled GitHub Action pings the store to keep it alive and commits a
+// backup (notes-backup.json) to the repo.
 (function () {
-  var KEY = "hb-notes-v1";
+  var STORE = "https://jsonblob.com/api/jsonBlob/019fc4a5-0486-77cf-bff2-de5c737ac5e5";
+  var KEY = "hb-notes-v2";
+  var OLDKEY = "hb-notes-v1";
+  var NAMEKEY = "hb-name";
+
   var notes = {};
   try { notes = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) { notes = {}; }
-  function save() { localStorage.setItem(KEY, JSON.stringify(notes)); }
+  try {
+    var old = JSON.parse(localStorage.getItem(OLDKEY) || "{}");
+    Object.keys(old).forEach(function (k) {
+      if (typeof old[k] === "string" && old[k] && !notes[k]) {
+        notes[k] = { t: old[k], ts: Date.now(), by: localStorage.getItem(NAMEKEY) || "" };
+      }
+    });
+    localStorage.removeItem(OLDKEY);
+  } catch (e) {}
 
-  var m = location.hash.match(/[#&]n=([^&]+)/);
-  if (m) {
-    try {
-      var imp = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));
-      Object.keys(imp).forEach(function (k) {
-        if (typeof imp[k] === "string" && imp[k] && !notes[k]) notes[k] = imp[k];
-      });
-      save();
-      history.replaceState(null, "", location.pathname + location.search);
-    } catch (e) {}
+  var dirty = false;
+  var chips = {}, slots = {}, editing = {};
+  var statusEl = null;
+  var syncing = false;
+
+  function cache() { localStorage.setItem(KEY, JSON.stringify(notes)); }
+
+  function merge(remote) {
+    var changed = false, pushNeeded = false;
+    Object.keys(remote).forEach(function (k) {
+      var r = remote[k], l = notes[k];
+      if (r && typeof r.t === "string" && (!l || (r.ts || 0) > (l.ts || 0))) {
+        notes[k] = r;
+        changed = true;
+      }
+    });
+    Object.keys(notes).forEach(function (k) {
+      var r = remote[k], l = notes[k];
+      if (!r || (l.ts || 0) > (r.ts || 0)) pushNeeded = true;
+    });
+    return { changed: changed, pushNeeded: pushNeeded };
   }
 
-  var chips = {}, slots = {}, editing = {};
+  function setStatus(msg) { if (statusEl) statusEl.textContent = msg; }
+
+  function sync(push) {
+    if (syncing) { return; }
+    syncing = true;
+    fetch(STORE, { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (doc) {
+        var m = merge((doc && doc.notes) || {});
+        if (m.changed) { cache(); renderAll(); }
+        if (push || m.pushNeeded || dirty) {
+          return fetch(STORE, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ v: 1, notes: notes })
+          }).then(function (r) { if (!r.ok) throw 0; dirty = false; });
+        }
+      })
+      .then(function () {
+        setStatus("shared notes · synced " +
+          new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }));
+      })
+      .catch(function () {
+        setStatus(dirty
+          ? "offline — your edits will sync when you're back online"
+          : "offline — showing notes saved on this device");
+      })
+      .finally(function () { syncing = false; });
+  }
+
+  function getName(cb) {
+    var n = localStorage.getItem(NAMEKEY);
+    if (n) return cb(n);
+    n = (window.prompt("Sign your notes as (e.g. Rachael):") || "").trim();
+    if (!n) n = "someone";
+    localStorage.setItem(NAMEKEY, n);
+    cb(n);
+  }
 
   function mkbtn(label, onclick) {
     var b = document.createElement("button");
@@ -357,20 +419,37 @@
   function render(id) {
     var slot = slots[id];
     slot.textContent = "";
+    var n = notes[id];
+    var has = !!(n && n.t);
     if (editing[id]) {
       var box = document.createElement("textarea");
       box.className = "notebox";
-      box.value = notes[id] || "";
+      box.value = has ? n.t : "";
       box.placeholder = "Leave a note…";
       var actions = document.createElement("div");
       actions.className = "noteactions";
       actions.appendChild(mkbtn("Save", function () {
-        var v = box.value.trim();
-        if (v) notes[id] = v; else delete notes[id];
-        editing[id] = false;
-        save();
-        render(id);
+        getName(function (name) {
+          notes[id] = { t: box.value.trim(), ts: Date.now(), by: name };
+          editing[id] = false;
+          dirty = true;
+          cache();
+          render(id);
+          sync(true);
+        });
       }));
+      if (has) {
+        actions.appendChild(mkbtn("Delete", function () {
+          getName(function (name) {
+            notes[id] = { t: "", ts: Date.now(), by: name };
+            editing[id] = false;
+            dirty = true;
+            cache();
+            render(id);
+            sync(true);
+          });
+        }));
+      }
       actions.appendChild(mkbtn("Cancel", function () {
         editing[id] = false;
         render(id);
@@ -378,21 +457,23 @@
       slot.appendChild(box);
       slot.appendChild(actions);
       box.focus();
-    } else if (notes[id]) {
+    } else if (has) {
       var card = document.createElement("div");
       card.className = "notecard";
       var who = document.createElement("div");
       who.className = "notewho";
-      who.textContent = "note";
+      who.textContent = n.by ? n.by + " · note" : "note";
       var txt = document.createElement("div");
       txt.className = "notetext";
-      txt.textContent = notes[id];
+      txt.textContent = n.t;
       card.appendChild(who);
       card.appendChild(txt);
       slot.appendChild(card);
     }
-    chips[id].textContent = notes[id] ? "✎ edit note" : "＋ note";
+    chips[id].textContent = has ? "✎ edit note" : "＋ note";
   }
+
+  function renderAll() { Object.keys(slots).forEach(render); }
 
   function attach(id, chipParent, slotParent) {
     var chip = mkbtn("", function () {
@@ -418,29 +499,19 @@
 
   var tools = document.createElement("span");
   tools.className = "notetools";
-  tools.appendChild(mkbtn("Share notes link", function () {
-    var enc = btoa(unescape(encodeURIComponent(JSON.stringify(notes))));
-    var url = location.origin + location.pathname + "#n=" + encodeURIComponent(enc);
-    function done(ok) {
-      hint.textContent = ok ? "Link copied — text it to share your notes." : "";
-      if (!ok) prompt("Copy this link:", url);
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(url).then(function () { done(true); }, function () { done(false); });
-    } else { done(false); }
+  statusEl = document.createElement("span");
+  statusEl.textContent = "shared notes · syncing…";
+  tools.appendChild(statusEl);
+  tools.appendChild(mkbtn("change my name", function () {
+    localStorage.removeItem(NAMEKEY);
+    getName(function () {});
   }));
-  tools.appendChild(mkbtn("Clear my notes", function () {
-    if (!Object.keys(notes).length) return;
-    if (confirm("Delete all notes saved on this device?")) {
-      notes = {};
-      save();
-      Object.keys(slots).forEach(render);
-    }
-  }));
-  var hint = document.createElement("span");
-  hint.textContent = "Notes save on this device.";
-  tools.appendChild(hint);
   document.getElementById("notefooter").appendChild(tools);
+
+  window.addEventListener("focus", function () { sync(false); });
+  window.addEventListener("online", function () { sync(false); });
+  setInterval(function () { sync(false); }, 30000);
+  sync(false);
 })();
 </script>
 </body>

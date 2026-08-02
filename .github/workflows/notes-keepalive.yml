@@ -1,0 +1,33 @@
+name: Keep shared trip notes alive
+
+# The itinerary page's shared notes live in an anonymous jsonblob document
+# that expires 24h after its last access. This pings it every 6 hours to keep
+# it alive and commits a backup into the repo whenever the notes change.
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch shared notes
+        run: |
+          curl -sf https://jsonblob.com/api/jsonBlob/019fc4a5-0486-77cf-bff2-de5c737ac5e5 -o notes-backup.json
+          python3 -m json.tool notes-backup.json > /dev/null
+
+      - name: Commit backup if changed
+        run: |
+          if [ -n "$(git status --porcelain notes-backup.json)" ]; then
+            git config user.name "notes-backup-bot"
+            git config user.email "actions@users.noreply.github.com"
+            git add notes-backup.json
+            git commit -m "Back up shared trip notes"
+            git push
+          fi
