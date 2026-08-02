@@ -84,28 +84,29 @@ pub fn itinerary() -> Vec<Stop> {
             "Depart Arlington",
             "Arlington, VA",
             "Fri Aug 7",
-            "Roll out around 2pm, ~5¾ hr down I-81 (~360 mi). Dinner in town and an \
-             early night at a pet-friendly Airbnb.",
+            "Roll out around 2:30pm, ~4¾ hr down I-81 and I-77. Dinner on the road, \
+             then an early night at a pet-friendly creekside cabin.",
             StopKind::Drive,
             38.8797,
             -77.1075,
         ),
         stop(
-            "Damascus — trail town night",
-            "Damascus, VA",
+            "Hillsville — creekside night",
+            "Hillsville, VA",
             "Fri Aug 7",
-            "The little Appalachian Trail town where everything smells like woodsmoke \
-             and boot leather. Sleep, big breakfast, then a short drive to the trailhead.",
+            "A creekside cabin with a stargazing deck and a fire pit. Sleep to creek \
+             sounds; Saturday's trailhead is only ~1 hr 20 min away through Galax, so \
+             the morning is slow — maybe breakfast in Galax and a leg-stretcher on the \
+             New River Trail.",
             StopKind::Stay,
-            36.6337,
-            -81.7876,
+            36.7626,
+            -80.7345,
         ),
         stop(
             "Backpack the Grayson Highlands",
             "Mount Rogers high country",
             "Sat Aug 8",
-            "Maybe a morning swim at Backbone Rock (15 min south of Damascus). Then park \
-             at Massie Gap (check-in 1pm), hike ~4 mi up the Rhododendron Trail and \
+            "Park at Massie Gap (check-in 1pm), hike ~4 mi up the Rhododendron Trail and \
              the AT over Wilburn Ridge — wild pony country, Poppy on leash — to camp near \
              Rhododendron Gap / Thomas Knob. Stove-only this year (fire ban); bear boxes \
              at camp. Sunset from the rocks ~8:20pm.",
@@ -190,7 +191,7 @@ pub fn itinerary() -> Vec<Stop> {
 pub fn driving_route() -> Vec<Position> {
     vec![
         lon_lat(-77.1075, 38.8797), // Arlington
-        lon_lat(-81.7876, 36.6337), // Damascus
+        lon_lat(-80.7345, 36.7626), // Hillsville
         lon_lat(-81.5360, 36.6570), // Mount Rogers high country
         lon_lat(-81.4929, 36.4043), // West Jefferson
         lon_lat(-81.9700, 36.1810), // Elk River Falls
