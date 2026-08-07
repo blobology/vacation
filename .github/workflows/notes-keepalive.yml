@@ -1,30 +1,55 @@
 name: Keep shared trip notes alive
 
-# The itinerary page's shared notes live in an anonymous jsonblob document
-# that expires 24h after its last access. This pings it every 6 hours to keep
-# it alive and commits a backup into the repo whenever the notes change.
+# The itinerary page's shared notes live in an anonymous jsonblob document whose
+# 24h expiry resets on every WRITE (reads don't extend it). This job reads the
+# doc and writes it straight back every 6 hours to keep it alive, and commits a
+# backup (notes-backup.json) into the repo whenever the notes change.
+#
+# It is deliberately tolerant of transient network errors: a hiccup logs a
+# warning and exits 0 rather than failing (and emailing). If the blob is ever
+# permanently gone, this can't revive the old ID — re-seed a new blob and update
+# STORE in itinerary.html.
 
 on:
   schedule:
     - cron: "17 */6 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   keepalive:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fetch shared notes
+      - name: Read notes, write back to reset TTL, back up
         run: |
-          curl -sf https://jsonblob.com/api/jsonBlob/019fc4a5-0486-77cf-bff2-de5c737ac5e5 -o notes-backup.json
-          python3 -m json.tool notes-backup.json > /dev/null
+          BLOB="https://jsonblob.com/api/jsonBlob/019fdcc5-e827-7c9b-abbc-42cc7137ed2b"
+
+          if ! curl -sS --retry 4 --retry-all-errors --max-time 30 "$BLOB" -o fetched.json; then
+            echo "::warning::Could not reach the notes store; skipping this run."
+            exit 0
+          fi
+          if ! python3 -m json.tool fetched.json > /dev/null 2>&1; then
+            echo "::warning::Notes store returned non-JSON (likely expired/missing); skipping."
+            exit 0
+          fi
+
+          # Write the same content straight back — this resets the 24h expiry.
+          if ! curl -sS --retry 4 --retry-all-errors --max-time 30 \
+                -X PUT "$BLOB" -H "Content-Type: application/json" \
+                --data-binary @fetched.json -o /dev/null; then
+            echo "::warning::Keepalive write failed; will retry next run."
+            exit 0
+          fi
+
+          mv fetched.json notes-backup.json
 
       - name: Commit backup if changed
         run: |
-          if [ -n "$(git status --porcelain notes-backup.json)" ]; then
+          if [ -f notes-backup.json ] && [ -n "$(git status --porcelain notes-backup.json)" ]; then
             git config user.name "notes-backup-bot"
             git config user.email "actions@users.noreply.github.com"
             git add notes-backup.json
