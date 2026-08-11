@@ -9,6 +9,7 @@ use walkers::{lon_lat, Position};
 pub enum StopKind {
     Drive,
     Camp,
+    Hike,
     Canoe,
     Swim,
     Stay,
@@ -20,6 +21,7 @@ impl StopKind {
         match self {
             StopKind::Drive => "🚗",
             StopKind::Camp => "⛺",
+            StopKind::Hike => "🥾",
             StopKind::Canoe => "🛶",
             StopKind::Swim => "💦",
             StopKind::Stay => "🏡",
@@ -31,6 +33,7 @@ impl StopKind {
         match self {
             StopKind::Drive => Color32::from_rgb(120, 120, 120),
             StopKind::Camp => Color32::from_rgb(63, 107, 79),
+            StopKind::Hike => Color32::from_rgb(150, 96, 54),
             StopKind::Canoe => Color32::from_rgb(70, 120, 165),
             StopKind::Swim => Color32::from_rgb(40, 145, 180),
             StopKind::Stay => Color32::from_rgb(184, 134, 15),
@@ -139,46 +142,45 @@ pub fn itinerary() -> Vec<Stop> {
             -81.6030,
         ),
         stop(
-            "Swim at Elk River Falls",
-            "Elk River Falls",
+            "Hike Hanging Rock",
+            "Hanging Rock SP, NC",
             "Tue Aug 11",
-            "On the way to the Roan, ~10 min off the route: a half-mile walk to a 50-ft \
-             waterfall pouring into a big emerald pool. Swim from the bank (no jumping!), \
-             lunch on the rocks, Poppy leashed back from the lip.",
+            "Checkout by 10am, then ~1¾ hr east to Hanging Rock State Park. Shady \
+             waterfall trails — Upper Cascades, then Window and Hidden Falls — with \
+             plunge pools for Poppy, plus an optional 2.6-mi climb to the summit outcrop. \
+             Hot (~89°F) but storms hold off till late afternoon.",
+            StopKind::Hike,
+            36.3958,
+            -80.2694,
+        ),
+        stop(
+            "Swim the Eno River",
+            "Fews Ford, NC",
+            "Tue Aug 11",
+            "~1½ hr from Hanging Rock: a dog-friendly dip in the Eno at Fews Ford — calm \
+             pools and flat rock ledges where Poppy can actually swim off the day's heat \
+             before we head into town.",
             StopKind::Swim,
-            36.1810,
-            -81.9700,
+            36.0736,
+            -78.9903,
         ),
         stop(
-            "Camp on Grassy Ridge Bald",
-            "Roan Highlands",
+            "Durham — Piedmont night",
+            "Durham, NC",
             "Tue Aug 11",
-            "~2 hr to Carvers Gap, then just 2.5 mi over Round and Jane Balds to camp at \
-             6,100 ft on the longest grassy bald in the Appalachians — 360° of mountains. \
-             Water carried up, food hung. Sunset ~8:15pm, then more stars than we've seen \
-             all year.",
-            StopKind::Camp,
-            36.0995,
-            -82.0780,
-        ),
-        stop(
-            "Hike out, head north",
-            "Roanoke, VA",
-            "Wed Aug 12",
-            "Sunrise on the ridge ~6:35am, break camp, and point the car home — ~6¾ hr \
-             in one go, or the nicer version: Cascades Falls in Pembroke (4-mi creekside \
-             walk to a 66-ft falls and swimming hole), then a celebration dinner and a \
-             night near Roanoke.",
-            StopKind::Drive,
-            37.2710,
-            -79.9414,
+            "Check in, hot showers, and dinner out in a city that does dinner well. Our \
+             base for the night before the easy drive home.",
+            StopKind::Stay,
+            35.9940,
+            -78.8986,
         ),
         stop(
             "Home to Arlington",
             "Arlington, VA",
-            "Thu Aug 13",
-            "Built-in slack day — either already home doing laundry, or an easy final \
-             3½ hr from Roanoke.",
+            "Wed–Thu Aug 12–13",
+            "A slow Durham morning — coffee and maybe the American Tobacco Trail with \
+             Poppy — then ~4½ hr up I-85 and I-95 for home. Thursday is the built-in \
+             slack day either way.",
             StopKind::Home,
             38.8797,
             -77.1075,
@@ -194,9 +196,8 @@ pub fn driving_route() -> Vec<Position> {
         lon_lat(-80.7345, 36.7626), // Hillsville
         lon_lat(-81.5360, 36.6570), // Mount Rogers high country
         lon_lat(-81.4929, 36.4043), // West Jefferson
-        lon_lat(-81.9700, 36.1810), // Elk River Falls
-        lon_lat(-82.0780, 36.0995), // Grassy Ridge Bald
-        lon_lat(-79.9414, 37.2710), // Roanoke
+        lon_lat(-80.2694, 36.3958), // Hanging Rock
+        lon_lat(-78.8986, 35.9940), // Durham
         lon_lat(-77.1075, 38.8797), // back to Arlington
     ]
 }
